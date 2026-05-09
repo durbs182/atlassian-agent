@@ -106,12 +106,12 @@ export ATLASSIAN_API_TOKEN="your-api-token"
 
 ### Step 4: Set Up MCP Server
 
-This repository requires an MCP (Model Context Protocol) server to communicate with Jira. The recommended setup uses the mcp-server repository:
+This repository requires an MCP (Model Context Protocol) server to communicate with Jira. Clone the Harness MCP server:
 
 ```bash
 # Clone the MCP server (parallel to this repo, if not already present)
 cd ..
-git clone https://github.com/pauldurbin/mcp-server.git
+git clone https://github.com/harness/mcp-server.git
 cd mcp-server
 
 # Install and build
@@ -169,7 +169,7 @@ Jira REST API (Cloud)
 
 The **Model Context Protocol (MCP)** Atlassian Server is the bridge between this wrapper and Jira.
 
-- **Repository:** https://github.com/pauldurbin/mcp-server
+- **Repository:** https://github.com/harness/mcp-server
 - **Transport:** stdio (subprocess communication)
 - **Tools:** 40+ Jira tools including issue CRUD, search, transitions, comments
 - **Auto-started:** Launched automatically by `atlassian_mcp_client.py` on first use
