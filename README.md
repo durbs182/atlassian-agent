@@ -106,24 +106,18 @@ export ATLASSIAN_API_TOKEN="your-api-token"
 
 ### Step 4: Set Up MCP Server
 
-This repository includes a pre-built copy of the mcp-atlassian server in `third_party/mcp-atlassian/`. The Python wrapper automatically launches it when needed.
-
-**No additional setup required!** The server is already included and will be used automatically.
-
-If you want to use a different version of mcp-atlassian:
-
-**Option 1: Install latest via npm**
+This repository requires the mcp-atlassian server to communicate with Jira. Install it via npm:
 
 ```bash
 npm install mcp-atlassian
-# Then set the path to the installed version
-export MCP_ATLASSIAN_PATH="$(pwd)/node_modules/mcp-atlassian"
 ```
 
-**Option 2: Build from source**
+This installs the mcp-atlassian package to `node_modules/`. The Python wrapper will automatically use it.
+
+**If you prefer to build from source:**
 
 ```bash
-# Clone and build the repository
+# Clone the repository
 cd ..
 git clone https://github.com/Vijay-Duke/mcp-atlassian.git
 cd mcp-atlassian
@@ -132,7 +126,7 @@ cd mcp-atlassian
 npm install
 npm run build
 
-# Set the path to the built version
+# Set environment variable to use this build
 export MCP_ATLASSIAN_PATH="$(pwd)"
 ```
 

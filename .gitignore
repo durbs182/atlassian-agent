@@ -24,5 +24,3 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Third-party
-third_party/mcp-atlassian
