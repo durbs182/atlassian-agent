@@ -870,13 +870,26 @@ def main() -> int:
     if args.args == ["third_party/mcp-atlassian/dist/index.js"]:  # Using default
         mcp_path = os.getenv("MCP_ATLASSIAN_PATH")
         if mcp_path:
-            args.args = [os.path.join(mcp_path, "build/index.js")]
+            # User specified explicit path - look for dist/index.js
+            mcp_index = os.path.join(mcp_path, "dist/index.js")
+            if os.path.exists(mcp_index):
+                args.args = [os.path.abspath(mcp_index)]
+            else:
+                # Fallback to build/index.js for source builds
+                mcp_build = os.path.join(mcp_path, "build/index.js")
+                if os.path.exists(mcp_build):
+                    args.args = [os.path.abspath(mcp_build)]
         else:
-            # Try relative path first (parallel repo structure)
-            relative_path = os.path.join(os.path.dirname(__file__), "..", "mcp-server", "build/index.js")
-            if os.path.exists(relative_path):
-                args.args = [os.path.abspath(relative_path)]
-            # Otherwise use default (will fail with helpful error if not found)
+            # Try node_modules first (npm install mcp-atlassian)
+            node_modules_path = os.path.join(os.getcwd(), "node_modules", "mcp-atlassian", "dist", "index.js")
+            if os.path.exists(node_modules_path):
+                args.args = [os.path.abspath(node_modules_path)]
+            else:
+                # Try third_party directory
+                third_party_path = os.path.join(os.path.dirname(__file__), "third_party", "mcp-atlassian", "dist", "index.js")
+                if os.path.exists(third_party_path):
+                    args.args = [os.path.abspath(third_party_path)]
+                # Otherwise use default (will fail with helpful error if not found)
     
     if args.mode == "agent":
         return run_agent_mode(args.command, args.args)
