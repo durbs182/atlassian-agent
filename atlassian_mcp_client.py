@@ -865,6 +865,19 @@ def main() -> int:
         help="Comma-separated components for jira-create-issue mode.",
     )
     args = parser.parse_args()
+    
+    # Resolve MCP server path from environment or defaults
+    if args.args == ["third_party/mcp-atlassian/dist/index.js"]:  # Using default
+        mcp_path = os.getenv("MCP_ATLASSIAN_PATH")
+        if mcp_path:
+            args.args = [os.path.join(mcp_path, "build/index.js")]
+        else:
+            # Try relative path first (parallel repo structure)
+            relative_path = os.path.join(os.path.dirname(__file__), "..", "mcp-server", "build/index.js")
+            if os.path.exists(relative_path):
+                args.args = [os.path.abspath(relative_path)]
+            # Otherwise use default (will fail with helpful error if not found)
+    
     if args.mode == "agent":
         return run_agent_mode(args.command, args.args)
     if _missing_env_vars():

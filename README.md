@@ -74,9 +74,9 @@ source .venv/bin/activate
 
 - Python 3.10+
 - Node.js 16+
-- npm package manager
+- npm package manager  
 - Atlassian Jira account with API token
-- MCP Atlassian Server (included, see below)
+- **Important:** This tool is designed for use with the **GitHub Copilot CLI and MCP integration**. Direct standalone use requires additional setup.
 
 ### Step 1: Clone This Repository
 
@@ -93,24 +93,23 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install mcp
 ```
 
-### Step 3: Install MCP Server
-
-The MCP Atlassian Server is required to communicate with Jira. It's available at https://github.com/pauldurbin/mcp-server.
-
-**Option A: Use existing MCP server (if already installed)**
-
-If you already have the MCP server at `/Users/pauldurbin/github/mcp-server` or another location, ensure it's built:
+### Step 3: Configure Jira Credentials
 
 ```bash
-cd /path/to/mcp-server
-npm install
-npm run build
+# Jira Cloud credentials (required)
+export ATLASSIAN_BASE_URL="https://your-domain.atlassian.net"
+export ATLASSIAN_EMAIL="your-email@example.com"
+export ATLASSIAN_API_TOKEN="your-api-token"
 ```
 
-**Option B: Clone and install MCP server**
+**Get your API token:** https://id.atlassian.com/manage-profile/security/api-tokens
+
+### Step 4: Set Up MCP Server
+
+This repository requires an MCP (Model Context Protocol) server to communicate with Jira. The recommended setup uses the mcp-server repository:
 
 ```bash
-# Clone MCP server (parallel to this repo)
+# Clone the MCP server (parallel to this repo, if not already present)
 cd ..
 git clone https://github.com/pauldurbin/mcp-server.git
 cd mcp-server
@@ -119,49 +118,36 @@ cd mcp-server
 npm install
 npm run build
 
-# Verify the build
+# Verify the build succeeded
 ls -la build/index.js
 ```
 
-**Server location:** The script expects the MCP server at `../mcp-server` relative to this repo, or uses the environment variable `MCP_ATLASSIAN_PATH` if set:
+**Alternative:** If your MCP server is in a different location, set the environment variable:
 
 ```bash
-export MCP_ATLASSIAN_PATH="/your/path/to/mcp-server"
+export MCP_ATLASSIAN_PATH="/path/to/mcp-server"
 ```
 
-### Step 4: Configure Environment Variables
+### Step 5: Verify Jira Connectivity
+
+Test that your Jira credentials work:
 
 ```bash
-# Jira Cloud credentials
-export ATLASSIAN_BASE_URL="https://your-domain.atlassian.net"
-export ATLASSIAN_EMAIL="your-email@example.com"
-export ATLASSIAN_API_TOKEN="your-api-token"
-
-# Optional: MCP server path (if not in ../mcp-server)
-export MCP_ATLASSIAN_PATH="/your/path/to/mcp-server"
+python3 atlassian_mcp_client.py --mode doctor
 ```
 
-**Get your API token:** https://id.atlassian.com/manage-profile/security/api-tokens
+Look for:
+- ✅ Environment variables set (ATLASSIAN_BASE_URL, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN)
+- ✅ MCP server found and built
+- ✅ Jira API connectivity confirmed
 
-### Step 5: Verify Setup
-
-```bash
-./scripts/jira-query.sh --mode doctor
-```
-
-Expected output shows:
-- ✅ Environment variables set
-- ✅ MCP server reachable
-- ✅ 40+ Jira tools available
-- ✅ Required tools (get_my_unresolved_issues, read_jira_issue, search_jira_issues) present
-
-### Step 6: Test a Query
+### Step 6: Run Your First Query
 
 ```bash
 ./scripts/jira-query.sh --mode my-tickets --format summary
 ```
 
-If you see your Jira tickets, you're all set!
+If you see your Jira tickets, the setup is complete!
 
 ## Architecture
 
