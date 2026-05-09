@@ -1,0 +1,19 @@
+{
+  "name": "atlassian-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "atlassian:tools": "python atlassian_mcp_client.py --mode list-tools",
+    "atlassian:doctor": "python atlassian_mcp_client.py --mode doctor",
+    "jira:mine": "python atlassian_mcp_client.py --mode jira-my-tickets"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

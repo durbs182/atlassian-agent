@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "atlassian-via-python-wrapper": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "${workspaceFolder}/atlassian_mcp_client.py",
+        "--mode",
+        "agent"
+      ],
+      "env": {
+        "ATLASSIAN_BASE_URL": "${env:ATLASSIAN_BASE_URL}",
+        "ATLASSIAN_EMAIL": "${env:ATLASSIAN_EMAIL}",
+        "ATLASSIAN_API_TOKEN": "${env:ATLASSIAN_API_TOKEN}"
+      }
+    }
+  }
+}
