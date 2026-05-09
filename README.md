@@ -74,49 +74,76 @@ source .venv/bin/activate
 
 - Python 3.10+
 - Node.js 16+
+- npm package manager
 - Atlassian Jira account with API token
-- MCP Atlassian Server (see below)
+- MCP Atlassian Server (included, see below)
 
-### Install MCP Server
-
-The MCP Atlassian Server is required to communicate with Jira. Clone and install it:
+### Step 1: Clone This Repository
 
 ```bash
-# Clone the MCP server repository
-cd /Users/pauldurbin/github
+git clone https://github.com/durbs182/atlassian-agent.git
+cd atlassian-agent
+```
+
+### Step 2: Set Up Python Virtual Environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install mcp
+```
+
+### Step 3: Install MCP Server
+
+The MCP Atlassian Server is required to communicate with Jira. It's available at https://github.com/pauldurbin/mcp-server.
+
+**Option A: Use existing MCP server (if already installed)**
+
+If you already have the MCP server at `/Users/pauldurbin/github/mcp-server` or another location, ensure it's built:
+
+```bash
+cd /path/to/mcp-server
+npm install
+npm run build
+```
+
+**Option B: Clone and install MCP server**
+
+```bash
+# Clone MCP server (parallel to this repo)
+cd ..
 git clone https://github.com/pauldurbin/mcp-server.git
 cd mcp-server
 
-# Install dependencies
+# Install and build
 npm install
-
-# Build the project
 npm run build
 
-# The server will be started automatically by atlassian_mcp_client.py
-# To run manually for testing:
-node build/index.js http &
+# Verify the build
+ls -la build/index.js
 ```
 
-**Server location:** `/Users/pauldurbin/github/mcp-server`
-
-The wrapper will automatically start the MCP server on first use. You can verify it's running:
+**Server location:** The script expects the MCP server at `../mcp-server` relative to this repo, or uses the environment variable `MCP_ATLASSIAN_PATH` if set:
 
 ```bash
-ps aux | grep "mcp-atlassian\|index.js"
+export MCP_ATLASSIAN_PATH="/your/path/to/mcp-server"
 ```
 
-### Configure Environment Variables
+### Step 4: Configure Environment Variables
 
 ```bash
-export ATLASSIAN_BASE_URL="https://your-instance.atlassian.net"
+# Jira Cloud credentials
+export ATLASSIAN_BASE_URL="https://your-domain.atlassian.net"
 export ATLASSIAN_EMAIL="your-email@example.com"
 export ATLASSIAN_API_TOKEN="your-api-token"
+
+# Optional: MCP server path (if not in ../mcp-server)
+export MCP_ATLASSIAN_PATH="/your/path/to/mcp-server"
 ```
 
-Get your API token: https://id.atlassian.com/manage-profile/security/api-tokens
+**Get your API token:** https://id.atlassian.com/manage-profile/security/api-tokens
 
-### Verify Setup
+### Step 5: Verify Setup
 
 ```bash
 ./scripts/jira-query.sh --mode doctor
@@ -125,9 +152,20 @@ Get your API token: https://id.atlassian.com/manage-profile/security/api-tokens
 Expected output shows:
 - ✅ Environment variables set
 - ✅ MCP server reachable
-- ✅ Required tools available
+- ✅ 40+ Jira tools available
+- ✅ Required tools (get_my_unresolved_issues, read_jira_issue, search_jira_issues) present
+
+### Step 6: Test a Query
+
+```bash
+./scripts/jira-query.sh --mode my-tickets --format summary
+```
+
+If you see your Jira tickets, you're all set!
 
 ## Architecture
+
+### How It Works
 
 ```
 User Command
@@ -136,10 +174,22 @@ jira-query.sh (bash wrapper)
     ↓
 atlassian_mcp_client.py (Python MCP client)
     ↓
-MCP Atlassian Server (Node.js)
+MCP Atlassian Server (Node.js/stdio)
     ↓
-Jira REST API
+Jira REST API (Cloud)
 ```
+
+### MCP Server
+
+The **Model Context Protocol (MCP)** Atlassian Server is the bridge between this wrapper and Jira.
+
+- **Repository:** https://github.com/pauldurbin/mcp-server
+- **Transport:** stdio (subprocess communication)
+- **Tools:** 40+ Jira tools including issue CRUD, search, transitions, comments
+- **Auto-started:** Launched automatically by `atlassian_mcp_client.py` on first use
+- **State management:** Maintains MCP session across calls for performance
+
+The wrapper uses direct stdio communication instead of going through a task agent, which eliminates 3-5 seconds of overhead per query.
 
 ### Direct Call Benefits
 
@@ -147,6 +197,7 @@ Jira REST API
 - **Fast initialization** - MCP server keeps state across calls
 - **Output formatting local** - Summary format doesn't affect query performance
 - **Scalable** - Handles large descriptions efficiently
+- **Reliable** - Standard MCP protocol ensures compatibility
 
 ## Files
 
