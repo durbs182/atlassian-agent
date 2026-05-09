@@ -70,13 +70,51 @@ source .venv/bin/activate
 
 ## Setup
 
-### Environment Variables
+### Prerequisites
+
+- Python 3.10+
+- Node.js 16+
+- Atlassian Jira account with API token
+- MCP Atlassian Server (see below)
+
+### Install MCP Server
+
+The MCP Atlassian Server is required to communicate with Jira. Clone and install it:
+
+```bash
+# Clone the MCP server repository
+cd /Users/pauldurbin/github
+git clone https://github.com/pauldurbin/mcp-server.git
+cd mcp-server
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# The server will be started automatically by atlassian_mcp_client.py
+# To run manually for testing:
+node build/index.js http &
+```
+
+**Server location:** `/Users/pauldurbin/github/mcp-server`
+
+The wrapper will automatically start the MCP server on first use. You can verify it's running:
+
+```bash
+ps aux | grep "mcp-atlassian\|index.js"
+```
+
+### Configure Environment Variables
 
 ```bash
 export ATLASSIAN_BASE_URL="https://your-instance.atlassian.net"
 export ATLASSIAN_EMAIL="your-email@example.com"
 export ATLASSIAN_API_TOKEN="your-api-token"
 ```
+
+Get your API token: https://id.atlassian.com/manage-profile/security/api-tokens
 
 ### Verify Setup
 
