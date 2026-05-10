@@ -153,6 +153,24 @@ This checks:
 
 ---
 
+## Fast Path 8: Rename Confluence Space (First-Try Path)
+
+Use the wrapper's dedicated rename mode so we hit the correct Confluence API path immediately.
+
+```bash
+cd /Users/pauldurbin/github/atlassian-agent
+source .venv/bin/activate
+python atlassian_mcp_client.py \
+  --mode confluence-rename-space \
+  --space-key MFS \
+  --space-name "team documents"
+```
+
+This mode intentionally uses the supported `/wiki/rest/api/space/{key}` update endpoint
+and verifies the result via `/wiki/api/v2/spaces/{id}`.
+
+---
+
 ## Old Method (Task Tool) - Avoid for Reads
 
 **Do NOT use this for simple Jira reads:**
@@ -671,4 +689,3 @@ Apply this pattern to:
 3. **Avoid N+1** — One primary fetch + one related search instead of three separate calls
 4. **Format locally** — Use bash wrapper's format_summary() (no server formatting)
 5. **Cache-friendly** — Metadata extracted once, reused for multiple queries if needed
-

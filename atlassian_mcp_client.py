@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
+import base64
 import json
 import os
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -53,6 +57,133 @@ def _print_missing_env_error(command: str, args: list[str]) -> None:
         ),
         file=sys.stderr,
     )
+
+
+def _confluence_request(
+    method: str, path: str, timeout_seconds: float, body: dict | None = None
+) -> dict:
+    base_url = os.getenv("ATLASSIAN_BASE_URL", "").rstrip("/")
+    email = os.getenv("ATLASSIAN_EMAIL", "")
+    api_token = os.getenv("ATLASSIAN_API_TOKEN", "")
+    auth = base64.b64encode(f"{email}:{api_token}".encode("utf-8")).decode("ascii")
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Basic {auth}",
+    }
+    payload = None
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+        payload = json.dumps(body).encode("utf-8")
+
+    url = f"{base_url}{path}"
+    request = urllib.request.Request(
+        url=url, data=payload, headers=headers, method=method
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            response_body = response.read().decode("utf-8")
+            if not response_body.strip():
+                return {}
+            return json.loads(response_body)
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        detail = error_body
+        try:
+            detail = json.loads(error_body)
+        except json.JSONDecodeError:
+            pass
+        raise RuntimeError(
+            f"Confluence API {method} {path} failed with status {exc.code}: {detail}"
+        ) from exc
+
+
+def run_confluence_rename_space(
+    space_key: str, space_name: str, timeout_seconds: float
+) -> int:
+    """Rename a Confluence space by key using the supported REST v1 endpoint."""
+    try:
+        encoded_key = urllib.parse.quote(space_key, safe="")
+        spaces = _confluence_request(
+            "GET", f"/wiki/api/v2/spaces?keys={encoded_key}", timeout_seconds
+        )
+        results = spaces.get("results", [])
+        if not results:
+            print(
+                json.dumps(
+                    {
+                        "mode": "confluence-rename-space",
+                        "space_key": space_key,
+                        "error": f"Space not found for key: {space_key}",
+                    },
+                    indent=2,
+                ),
+                file=sys.stderr,
+            )
+            return 1
+
+        current = results[0]
+        current_name = current.get("name", "")
+        space_type = current.get("type", "global")
+        space_id = str(current.get("id", ""))
+        if current_name == space_name:
+            print(
+                json.dumps(
+                    {
+                        "mode": "confluence-rename-space",
+                        "space_key": space_key,
+                        "space_id": space_id,
+                        "old_name": current_name,
+                        "new_name": space_name,
+                        "unchanged": True,
+                        "message": "Space already has the requested name.",
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+
+        # Confluence v2 spaces endpoint does not support rename via PUT.
+        # Use the canonical v1 endpoint to apply the rename in one request.
+        _confluence_request(
+            "PUT",
+            f"/wiki/rest/api/space/{encoded_key}",
+            timeout_seconds,
+            body={"key": space_key, "name": space_name, "type": space_type},
+        )
+        verified = _confluence_request(
+            "GET", f"/wiki/api/v2/spaces/{space_id}", timeout_seconds
+        )
+        verified_name = verified.get("name", "")
+        ok = verified_name == space_name
+        print(
+            json.dumps(
+                {
+                    "mode": "confluence-rename-space",
+                    "space_key": space_key,
+                    "space_id": space_id,
+                    "old_name": current_name,
+                    "new_name": verified_name,
+                    "requested_name": space_name,
+                    "updated": ok,
+                },
+                indent=2,
+            )
+        )
+        return 0 if ok else 1
+    except Exception as exc:
+        print(
+            json.dumps(
+                {
+                    "mode": "confluence-rename-space",
+                    "space_key": space_key,
+                    "requested_name": space_name,
+                    "error": str(exc),
+                },
+                indent=2,
+            ),
+            file=sys.stderr,
+        )
+        return 1
 
 
 async def _inspect_server(
@@ -759,7 +890,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--mode",
-        choices=["list-tools", "doctor", "jira-my-tickets", "jira-all-issues", "jira-search", "jira-read-issue", "jira-related-tickets", "jira-create-issue", "agent"],
+        choices=["list-tools", "doctor", "jira-my-tickets", "jira-all-issues", "jira-search", "jira-read-issue", "jira-related-tickets", "jira-create-issue", "confluence-rename-space", "agent"],
         default="list-tools",
         help=(
             "'list-tools' inspects toolset. "
@@ -770,6 +901,7 @@ def main() -> int:
             "'jira-read-issue' reads full details of a specific issue. "
             "'jira-related-tickets' finds related tickets (linked, epic, labels, components). "
             "'jira-create-issue' creates a new Jira issue. "
+            "'confluence-rename-space' renames a Confluence space by key. "
             "'agent' execs mcp-atlassian for Copilot."
         ),
     )
@@ -863,6 +995,18 @@ def main() -> int:
         type=str,
         default="",
         help="Comma-separated components for jira-create-issue mode.",
+    )
+    parser.add_argument(
+        "--space-key",
+        type=str,
+        default="",
+        help="Confluence space key (e.g., MFS) for confluence-rename-space mode.",
+    )
+    parser.add_argument(
+        "--space-name",
+        type=str,
+        default="",
+        help="New Confluence space name for confluence-rename-space mode.",
     )
     args = parser.parse_args()
     
@@ -993,6 +1137,22 @@ def main() -> int:
                 labels,
                 components,
             )
+        )
+    if args.mode == "confluence-rename-space":
+        if not args.space_key or not args.space_name:
+            print(
+                json.dumps(
+                    {
+                        "error": "--space-key and --space-name required for confluence-rename-space mode",
+                        "example": "python atlassian_mcp_client.py --mode confluence-rename-space --space-key MFS --space-name 'team documents'",
+                    },
+                    indent=2,
+                ),
+                file=sys.stderr,
+            )
+            return 1
+        return run_confluence_rename_space(
+            args.space_key, args.space_name, args.timeout
         )
     return asyncio.run(run(args.command, args.args, args.timeout))
 
