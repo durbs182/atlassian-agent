@@ -13,11 +13,12 @@
 
 ---
 
-## Confluence Coverage Runbook
+## Coverage Runbooks
 
-Use the Confluence coverage plan when validating Confluence functionality end-to-end:
+Use the coverage plans when validating end-to-end functionality:
 
-- `docs/CONFLUENCE-TEST-PLAN.md`
+- Jira: `docs/JIRA-TEST-PLAN.md`
+- Confluence: `docs/CONFLUENCE-TEST-PLAN.md`
 - MCP source used by this project: `https://github.com/durbs182/mcp-atlassian` (pinned via git submodule in `third_party/mcp-atlassian`)
 
 ### Confluence Authoring Default: Code Snippets

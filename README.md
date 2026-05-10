@@ -197,6 +197,7 @@ The wrapper uses direct stdio communication instead of going through a task agen
 - `atlassian_mcp_client.py` - Python wrapper for MCP server communication
 - `scripts/jira-query.sh` - User-facing CLI interface
 - `atlassian-expert.instructions.md` - Agent guidance documentation
+- `docs/JIRA-TEST-PLAN.md` - Jira functionality coverage test plan
 - `docs/CONFLUENCE-TEST-PLAN.md` - Confluence functionality coverage test plan
 
 ## Usage Examples
