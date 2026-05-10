@@ -20,6 +20,27 @@ Use the Confluence coverage plan when validating Confluence functionality end-to
 - `docs/CONFLUENCE-TEST-PLAN.md`
 - MCP source used by this project: `https://github.com/durbs182/mcp-atlassian` (pinned via git submodule in `third_party/mcp-atlassian`)
 
+### Confluence Authoring Default: Code Snippets
+
+When writing or updating Confluence pages, any code snippet **must** be added using the Confluence **Code Block macro** by default (storage format), not plain `<pre><code>`.
+
+Use this pattern:
+
+```xml
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="language">typescript</ac:parameter>
+  <ac:parameter ac:name="theme">Default</ac:parameter>
+  <ac:plain-text-body><![CDATA[
+const example = true;
+]]></ac:plain-text-body>
+</ac:structured-macro>
+```
+
+Notes:
+- Prefer explicit language (`typescript`, `python`, `bash`, `json`, etc.).
+- Escape `]]>` inside snippet content when needed.
+- Keep surrounding prose in standard storage HTML; use macro only for code.
+
 ---
 
 ## ⚡ Output Format Optimization
