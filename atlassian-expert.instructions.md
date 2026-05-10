@@ -13,6 +13,14 @@
 
 ---
 
+## Confluence Coverage Runbook
+
+Use the Confluence coverage plan when validating Confluence functionality end-to-end:
+
+- `docs/CONFLUENCE-TEST-PLAN.md`
+
+---
+
 ## ⚡ Output Format Optimization
 
 For tickets with large descriptions (like MDP-8 at 22.5 KB), use `--format summary` to get only essential fields:
