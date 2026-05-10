@@ -29,9 +29,12 @@ source .venv/bin/activate
 ## Step 3: Install Dependencies
 
 ```bash
+git submodule update --init --recursive
 pip install -r requirements.txt 2>/dev/null || pip install mcp
 npm install
 ```
+
+`npm install` runs postinstall to install/build `third_party/mcp-atlassian` from the pinned submodule revision.
 
 ## Step 4: Verify Setup
 

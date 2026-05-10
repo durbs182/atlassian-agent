@@ -1,0 +1,4 @@
+[submodule "third_party/mcp-atlassian"]
+	path = third_party/mcp-atlassian
+	url = https://github.com/durbs182/mcp-atlassian.git
+	branch = fix/confluence-endpoints-attachments

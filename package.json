@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "if [ -d third_party/mcp-atlassian ]; then npm --prefix third_party/mcp-atlassian install && npm --prefix third_party/mcp-atlassian run build; fi",
     "atlassian:tools": "python atlassian_mcp_client.py --mode list-tools",
     "atlassian:doctor": "python atlassian_mcp_client.py --mode doctor",
     "jira:mine": "python atlassian_mcp_client.py --mode jira-my-tickets"

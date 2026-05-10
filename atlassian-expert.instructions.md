@@ -18,6 +18,7 @@
 Use the Confluence coverage plan when validating Confluence functionality end-to-end:
 
 - `docs/CONFLUENCE-TEST-PLAN.md`
+- MCP source used by this project: `https://github.com/durbs182/mcp-atlassian` (pinned via git submodule in `third_party/mcp-atlassian`)
 
 ---
 

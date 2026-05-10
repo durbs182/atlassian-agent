@@ -81,8 +81,14 @@ source .venv/bin/activate
 ### Step 1: Clone This Repository
 
 ```bash
-git clone https://github.com/durbs182/atlassian-agent.git
+git clone --recurse-submodules https://github.com/durbs182/atlassian-agent.git
 cd atlassian-agent
+```
+
+If you already cloned without submodules:
+
+```bash
+git submodule update --init --recursive
 ```
 
 ### Step 2: Set Up Python Virtual Environment
@@ -106,31 +112,27 @@ export ATLASSIAN_API_TOKEN="your-api-token"
 
 ### Step 4: Set Up MCP Server
 
-This repository requires the mcp-atlassian server to communicate with Jira. Install it via npm:
+This repository requires the mcp-atlassian server to communicate with Jira and Confluence.
+The server is tracked as a git submodule pinned to the maintained fork revision.
+Install dependencies from this repo:
 
 ```bash
-npm install mcp-atlassian
+npm install
 ```
 
-This installs the mcp-atlassian package to `node_modules/`. The Python wrapper will automatically use it.
+This runs postinstall to install/build `third_party/mcp-atlassian`.
+The Python wrapper will automatically use the built server.
 
 **If you prefer to build from source:**
 
 ```bash
-# Clone the repository
-cd ..
-git clone https://github.com/Vijay-Duke/mcp-atlassian.git
-cd mcp-atlassian
-
-# Install and build
-npm install
-npm run build
-
-# Set environment variable to use this build
-export MCP_ATLASSIAN_PATH="$(pwd)"
+# Rebuild the tracked submodule
+git submodule update --init --recursive
+npm --prefix third_party/mcp-atlassian install
+npm --prefix third_party/mcp-atlassian run build
 ```
 
-**MCP Server Repository:** https://github.com/Vijay-Duke/mcp-atlassian
+**MCP Server Repository (tracked fork):** https://github.com/durbs182/mcp-atlassian
 
 ### Step 5: Verify Jira Connectivity
 
@@ -173,7 +175,7 @@ Jira REST API (Cloud)
 
 The **Model Context Protocol (MCP)** Atlassian Server is the bridge between this wrapper and Jira.
 
-- **Repository:** https://github.com/Vijay-Duke/mcp-atlassian
+- **Repository:** https://github.com/durbs182/mcp-atlassian
 - **NPM Package:** mcp-atlassian
 - **Transport:** stdio (subprocess communication)
 - **Tools:** 40+ Jira tools including issue CRUD, search, transitions, comments
