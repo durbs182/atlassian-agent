@@ -880,7 +880,7 @@ def run_agent_mode(command: str, args: list[str]) -> int:
         _print_missing_env_error(command, args)
         return 2
     env = build_env()
-    os.execvpe(command, [command, *args], env)
+    os.execvpe(command, [command, *args], env)  # command is now 'npx', args is ['@durbs182/mcp-atlassian']
     return 1
 
 
@@ -907,13 +907,13 @@ def main() -> int:
     )
     parser.add_argument(
         "--command",
-        default="node",
+        default="npx",
         help="Command to launch MCP server.",
     )
     parser.add_argument(
         "--args",
         nargs="*",
-        default=["third_party/mcp-atlassian/dist/index.js"],
+        default=["npx", "@durbs182/mcp-atlassian"],
         help="Command args to launch MCP server.",
     )
     parser.add_argument(
